@@ -3,7 +3,7 @@ import sys
 import os
 import cv2
 
-location = sys.argv[1]
+location = os.path.abspath(sys.argv[1])
 
 # get all files' and folders' names in the current directory
 filenames = os.listdir(location)
@@ -47,22 +47,33 @@ for filename in filenames:  # loop through all the files and folders
                 print(moviePath)
                 height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
                 width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+                size = "?"
+                if height < 460:
+                    size = "SD"
+                elif height >= 460 and height <= 480:
+                    size = "480p"
+                elif height > 480 and height <= 720:
+                    size = "720p"
+                elif height > 720 and height <= 1080:
+                    size = "1080p"
+                else:
+                    size = "4K"
                 vid.release()
                 if (height > 720 and width > 576):
-                    Dictionary[filename] = "Blu-ray"
+                    Dictionary[filename] = ["Blu-ray",height,size]
                 else:
-                    Dictionary[filename] = "DVD"
+                    Dictionary[filename] = ["DVD",height,size]
             else:
                 print("Cannot read : " + moviePath + " properly")
-                Dictionary[filename] = "Unknown"
+                Dictionary[filename] = ["Unknown",0,"Unknown"]
 
         except:
-            Dictionary[filename] = "Unknown"
+            Dictionary[filename] = ["Unknown",0,"Unknown"]
 
 cv2.destroyAllWindows()
 # To save Folders names to a file.
 f = open('fileListings.txt', 'w', encoding='utf-8')
-for index, (filename, definition) in enumerate(Dictionary.items()):
-    f.write("%s : %s \n" % (filename, definition))
+for index, (filename, size) in enumerate(sorted(Dictionary.items())):
+    f.write("%s : %s : %d : %s \n" % (filename, size[0],size[1],size[2]))
 
 f.close()

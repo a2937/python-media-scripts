@@ -2,7 +2,7 @@
 import sys
 import os
 
-location = sys.argv[1]
+location = os.path.abspath(sys.argv[1])
 # get all files' and folders' names in the current directory
 artistNames = os.listdir(location)
 Dictionary = {}
