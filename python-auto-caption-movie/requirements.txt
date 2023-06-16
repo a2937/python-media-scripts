@@ -1,0 +1,6 @@
+setuptools
+wheel
+pocketsphinx
+SpeechRecognition
+openai-whisper 
+ffmpeg

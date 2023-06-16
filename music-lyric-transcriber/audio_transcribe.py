@@ -4,11 +4,12 @@ import speech_recognition as sr
 import sys 
 import os
 
-# obtain path to "english.wav" in the same folder as this script
 from os import path
 
+# Get the name of the audio file to be read
 file_name = sys.argv[1] 
 
+# Get the path of the file
 AUDIO_FILE = path.abspath(file_name)
 
 # use the audio file as the audio source
