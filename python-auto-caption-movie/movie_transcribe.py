@@ -1,48 +1,80 @@
 #!/usr/bin/env python3 # [1]
-from os import path,remove
-import sys 
-import whisper_timestamped as whisper
-import time
+import sys
+from os import path, remove
 from moviepy.editor import *
-import json
+import whisper_timestamped as whisper
 
-file_name = sys.argv[1] 
+def generate_subtitles(transcribed_dialogues, duration_per_dialogue=3):
+    subtitles = []
+    current_timestamp = 0
 
-# Get the path of the file
-VIDEO_FILE = path.abspath(file_name)
+    for dialogue in transcribed_dialogues:
+        start_timestamp = format_timestamp(current_timestamp)
+        current_timestamp += duration_per_dialogue
+        end_timestamp = format_timestamp(current_timestamp)
 
-# Insert Local Video File Path
-clip = VideoFileClip(VIDEO_FILE)
+        subtitles.append({
+            "start": start_timestamp,
+            "end": end_timestamp,
+            "dialogue": dialogue
+        })
 
+    return subtitles
 
-extension_index = file_name.index(".")
-extension = file_name[extension_index:]
-#proper_name = file_name.replace(extension,"_audio.wav")
-proper_name = 'audio.wav' 
-#clip.audio.write_audiofile(proper_name,codec='pcm_s16le')
+def write_srt(subtitle, output_srt_file):
+    with open(output_srt_file, "a") as f:  # Use "a" mode for append
+        f.write(str(subtitle["index"]) + "\n")
+        f.write(subtitle["start"] + " --> " + subtitle["end"] + "\n")
+        f.write(subtitle["dialogue"] + "\n\n")
 
+def format_timestamp(seconds):
+    hours = int(seconds / 3600)
+    minutes = int((seconds % 3600) / 60)
+    seconds = int(seconds % 60)
+    milliseconds = int((seconds % 1) * 1000)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python script_name.py video_file.mp4")
+        return
+    
+    file_name = sys.argv[1]
 
+    if not path.exists(file_name):
+      print("Error: File does not exist.")
+      return
 
-# wait for the file to be written 
-seconds = 10 
+    VIDEO_FILE = path.abspath(file_name)
+    clip = VideoFileClip(VIDEO_FILE)
 
+    extension_index = file_name.rfind(".")
+    if extension_index != -1:
+        base_name = path.splitext(file_name)
+        proper_name = base_name + "_audio.wav"
+        output_srt_file = base_name + ".srt"
+        
+        # Write audio to the proper_name file
+        clip.audio.write_audiofile(proper_name, codec='pcm_s16le')
 
-for i in range(0, int(seconds * 100)):
-          while True:
-            time.sleep(seconds / 100)
-            if os.path.exists(proper_name):
-                print("Audio Copy loaded")
-                # open the file
-                print(proper_name)
+        audio = whisper.load_audio(proper_name)
+        model = whisper.load_model("base")
+        result = whisper.transcribe(model, audio, language="en")
+        transcribed_dialogues = [item['text'] for item in result['segments']]
 
-                audio = whisper.load_audio(proper_name)
-                model = whisper.load_model("base")
-                result = whisper.transcribe(model, audio, language="en")
-                print(json.dumps(result, indent = 2, ensure_ascii = False))
-                break
-          break
+        subtitles = generate_subtitles(transcribed_dialogues)
 
-print("Should have exited the loop")          
-# Cleanup the old audio file            
-remove(proper_name)
+        for subtitle in subtitles:
+            print(f"{subtitle['start']} --> {subtitle['end']}")
+            print(subtitle['dialogue'])
+            print()
+            write_srt([subtitle], output_srt_file)  # Write subtitles to the SRT file line by line
+
+        remove(proper_name)
+        print("Subtitles generated and saved as", output_srt_file)
+    else:
+        print("Invalid file name format.")
+        return 
+
+if __name__ == "__main__":
+    main()

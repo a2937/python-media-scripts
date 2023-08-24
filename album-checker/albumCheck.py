@@ -22,54 +22,68 @@ sheet['D1'] = "Status"
 sheet['E1'] = 'Notes'
 currentRow = 2 
 
-def isMusicFile(path):
-    # is it a song
-    print(path)
-    if os.path.isfile(path) and (path.lower().endswith(".mp3") or path.lower().endswith(".m4a")
-                                 or path.lower().endswith(".flac")):
-        return True
-    else:
-        return False
+def is_music_file(path):
+    valid_extensions = [".mp3", ".m4a", ".flac"]
+    if os.path.isfile(path):
+        for ext in valid_extensions:
+            if path.lower().endswith(ext):
+                return True
+    return False
 
+def process_artist_folder(artist_path, artist_name, sheet):
+    potential_album_names = os.listdir(artist_path)
+    current_row = 2
+    
+    yellow_fill = PatternFill(patternType='solid', fgColor=colors.Color(rgb='FFFF00'))
+    
+    for album in potential_album_names:
+        album_path = os.path.join(artist_path, album)
+        if os.path.isdir(album_path):
+            song_list = os.listdir(album_path)
+            album_song_count = 0 
+            for song in song_list:   
+            
+              if is_music_file (os.path.join(album_path, song)): 
+                album_song_count += 1
+                sheet.cell(row=current_row, column=1).value = artist_name
+                sheet.cell(row=current_row, column=2).value = album
+                sheet.cell(row=current_row, column=3).value = album_song_count
+                
+                if album_song_count > 3:
+                    sheet.cell(row=current_row, column=2).fill = yellow_fill
+                    sheet.cell(row=current_row, column=4).value = "Full"
+                else:
+                    sheet.cell(row=current_row, column=4).value = "Incomplete"
+                
+                current_row += 1
 
-for artist in artistNames:  # loop through all the files and folders
-    potArtistPath = os.path.join(os.path.abspath(location), artist)
-    if os.path.isdir(potArtistPath):
-        # Grab every album by that artist
-        potentialAlbumNames = os.listdir(potArtistPath)
-        for album in potentialAlbumNames:  # Look through every album
-            potAlbumPath = os.path.join(os.path.abspath(
-                potArtistPath), album)  # Get the path of the album
-            if os.path.isdir(potAlbumPath):
-                songList = os.listdir(potAlbumPath)
-                albumSongCount = 0
-                Dictionary[artist + ";" + album] = 0
-                for song in songList:
-                    musicPath = os.path.join(os.path.abspath(
-                        potAlbumPath), song)
-                    if (isMusicFile(musicPath)):
-                        albumSongCount += 1
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python script_name.py directory_path")
+        return
+    
+    location = os.path.abspath(sys.argv[1])
+    
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Albums"
 
-                        Dictionary[artist + ";" + album] = albumSongCount
+    # Headers
+    sheet['A1'] = "Artist"
+    sheet['B1'] = "Album"
+    sheet['C1'] = "Song"
+    sheet['D1'] = "Status"
 
-yellowFill = PatternFill(patternType='solid', fgColor=colors.Color(rgb='FFFF00'))
-#f = open('albumSongCount.txt', 'w', encoding='utf-8')
-for index, (artist, count) in enumerate(sorted(Dictionary.items())): 
-    currentRow += 1
-    artistTrueName = artist.split(";")[0]
-    albumName = artist.split(";")[1]
-    sheet['A' + str(currentRow)] = artistTrueName
-    sheet['B' + str(currentRow)] = albumName
-    if count > 3 : 
-        sheet.cell(row=currentRow,column=2).fill = yellowFill
-        sheet['D' + str(currentRow)] = "Full"
-    else:
-        sheet['D' + str(currentRow)] = "Incomplete"
-    sheet['C' + str(currentRow)] = count
-   
+    artist_names = os.listdir(location)
 
-#  f.write("%s ; %d \n" % (artist, count))
-#f.close()
+    for artist_name in artist_names:
+        artist_path = os.path.join(location, artist_name)
+        if os.path.isdir(artist_path):
+            process_artist_folder(artist_path, artist_name, sheet)
 
+    output_file = 'album_list.xlsx'
+    wb.save(output_file)
+    print("Album list saved as", output_file)
 
-wb.save('album_list.xlsx')
+if __name__ == "__main__":
+    main()
