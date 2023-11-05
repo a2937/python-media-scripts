@@ -2,6 +2,9 @@
 import sys
 import os
 import cv2
+import openpyxl
+from openpyxl.styles.fills import PatternFill
+from openpyxl.styles import colors
 
 
 def is_movie_file(path):
@@ -34,6 +37,7 @@ def process_movie_folder(folder_path, folder_name):
 
     if movie_files:
         movie_path = movie_files[0]
+        print(movie_path)
     else:
         print("No movie found in:", folder_name)
         return ["Unknown", 0, "Unknown"]
@@ -74,6 +78,17 @@ def main():
 
     filenames = os.listdir(location)
     dictionary = {}
+    wb = openpyxl.Workbook()
+    sheet = wb.active
+    sheet.title = "Movies"
+
+    # Headers
+    sheet['A1'] = "Movie Name"
+    sheet['B1'] = "Type"
+    sheet['C1'] = "Height"
+    sheet['D1'] = 'Resolution'
+    
+
 
     try:
         for filename in filenames:
@@ -83,11 +98,28 @@ def main():
                     potential_movie_path, filename)
                 dictionary[filename] = size_info
 
+           
+
         # Save folder names and sizes to a file
         with open('fileListings.txt', 'w') as f:
+            current_row = 2 
             for folder_name, size_info in sorted(dictionary.items()):
                 f.write("%s : %s : %d : %s\n" %
                         (folder_name, size_info[0], size_info[1], size_info[2]))
+                sheet.cell(row=current_row, column=1).value = folder_name
+                sheet.cell(row=current_row, column=2).value = size_info[0]
+                sheet.cell(row=current_row,
+                      column=3).value = size_info[1]
+                sheet.cell(row=current_row,
+                      column=4).value = size_info[2]
+                current_row = current_row + 1
+
+
+        output_file = 'movie_list.xlsx'
+        wb.save(output_file)
+        print("Show list saved as", output_file)
+
+      
     except Exception as e:
         print("An error occurred:", e)
 
