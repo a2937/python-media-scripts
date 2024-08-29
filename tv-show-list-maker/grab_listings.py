@@ -6,16 +6,6 @@ from openpyxl.styles.fills import PatternFill
 from openpyxl.styles import colors
 
 
-wb = openpyxl.Workbook()
-sheet = wb.active
-sheet.title = "Television shows"
-
-# Headers
-sheet['A1'] = "Show"
-sheet['B1'] = "Season"
-sheet['C1'] = "Episode Count"
-sheet['D1'] = 'Notes'
-currentRow = 2
 
 def is_movie_file(path):
     valid_extensions = [".mkv", ".avi", ".mp4", ".webm", ".m4v"]
@@ -40,26 +30,23 @@ def get_video_quality(height):
 
 
 def process_show_folder(folder_path, show_name, current_row, sheet):
-   
+
     potential_seasons = os.listdir(folder_path)
-    
+
     for season in potential_seasons:
-      season_path = os.path.join(folder_path, season)
-      if os.path.isdir(season_path):
-          episode_list =  os.listdir(season_path)
-          episode_count = 0
-          for episode in episode_list:
-              if is_movie_file(os.path.join(season_path, episode)):
-                  episode_count += 1
-          print(show_name + ":" + str(current_row) )
-          sheet.cell(row=current_row, column=1).value = show_name
-          sheet.cell(row=current_row, column=2).value = season
-          sheet.cell(row=current_row,
-                      column=3).value = episode_count
-          current_row += 1
-
-
-                  
+        season_path = os.path.join(folder_path, season)
+        if os.path.isdir(season_path):
+            episode_list = os.listdir(season_path)
+            episode_count = 0
+            for episode in episode_list:
+                if is_movie_file(os.path.join(season_path, episode)):
+                    episode_count += 1
+            print(show_name + ":" + str(current_row))
+            sheet.cell(row=current_row, column=1).value = show_name
+            sheet.cell(row=current_row, column=2).value = season
+            sheet.cell(row=current_row,
+                       column=3).value = episode_count
+            current_row += 1
 
 
 def main():

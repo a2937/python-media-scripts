@@ -5,26 +5,11 @@ import openpyxl
 from openpyxl.styles.fills import PatternFill
 from openpyxl.styles import colors
 
-location = os.path.abspath(sys.argv[1])
-# get all files' and folders' names in the current directory
-artistNames = os.listdir(location)
-Dictionary = {}
-
-wb = openpyxl.Workbook()
-sheet = wb.active
-sheet.title = "Albums"
-
-# Headers
-sheet['A1'] = "Artist"
-sheet['B1'] = "Album"
-sheet['C1'] = "Song"
-sheet['D1'] = "Status"
-sheet['E1'] = 'Notes'
-currentRow = 2
 
 
-def is_movie_file(path):
-    valid_extensions = [".mkv", ".avi", ".mp4", ".webm", ".m4v"]
+
+def is_music_file(path):
+    valid_extensions = [".mp3",".m4a",".flac"]
     if os.path.isfile(path):
         for ext in valid_extensions:
             if path.lower().endswith(ext):
@@ -45,7 +30,8 @@ def process_artist_folder(artist_path, artist_name,  current_row, sheet):
             album_song_count = 0
             for song in song_list:
 
-                if is_movie_file(os.path.join(album_path, song)):
+                if is_music_file(os.path.join(album_path, song)):
+                    print(album)
                     album_song_count += 1
                     sheet.cell(row=current_row, column=1).value = artist_name
                     sheet.cell(row=current_row, column=2).value = album
@@ -81,13 +67,14 @@ def main():
     sheet['B1'] = "Artist"
     sheet['C1'] = "Song"
     sheet['D1'] = "Status"
+    sheet['E1'] = 'Notes'
 
     artist_names = os.listdir(location)
 
     for artist_name in artist_names:
         artist_path = os.path.join(location, artist_name)
         if os.path.isdir(artist_path):
-            process_artist_folder(artist_path, artist_name, sheet)
+            process_artist_folder(artist_path, artist_name, currentRow,sheet)
             currentRow += 1
 
     output_file = 'album_list.xlsx'
