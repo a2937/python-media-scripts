@@ -5,7 +5,7 @@ import openpyxl
 from openpyxl.styles.fills import PatternFill
 from openpyxl.styles import colors
 
-
+Dictionary = {}
 
 
 def is_music_file(path):
@@ -17,70 +17,78 @@ def is_music_file(path):
     return False
 
 
-def process_artist_folder(artist_path, artist_name,  current_row, sheet):
-    potential_album_names = os.listdir(artist_path)
+def process_artist_albums(location, artist):
+    potArtistPath = os.path.join(os.path.abspath(location), artist)
+    if os.path.isdir(potArtistPath):
+          # Grab every album by that artist
+        potentialAlbumNames = os.listdir(potArtistPath)
+        for album in potentialAlbumNames:  # Look through every album
+            potAlbumPath = os.path.join(os.path.abspath(
+                  potArtistPath), album)  # Get the path of the album
+            if os.path.isdir(potAlbumPath):
+                songList = os.listdir(potAlbumPath)
+                albumSongCount = 0
+                Dictionary[artist + ";" + album] = 0
+                for song in songList:
+                    musicPath = os.path.join(os.path.abspath(
+                          potAlbumPath), song)
+                    if (is_music_file(musicPath)):
+                        print(musicPath)
+                        albumSongCount += 1
 
-    yellow_fill = PatternFill(
-        patternType='solid', fgColor=colors.Color(rgb='FFFF00'))
-
-    for album in potential_album_names:
-        album_path = os.path.join(artist_path, album)
-        if os.path.isdir(album_path):
-            song_list = os.listdir(album_path)
-            album_song_count = 0
-            for song in song_list:
-
-                if is_music_file(os.path.join(album_path, song)):
-                    print(album)
-                    album_song_count += 1
-                    sheet.cell(row=current_row, column=1).value = artist_name
-                    sheet.cell(row=current_row, column=2).value = album
-                    sheet.cell(row=current_row,
-                               column=3).value = album_song_count
-
-                    if album_song_count > 3:
-                        sheet.cell(row=current_row,
-                                   column=2).fill = yellow_fill
-                        sheet.cell(row=current_row, column=4).value = "Full"
-                    else:
-                        sheet.cell(row=current_row,
-                                   column=4).value = "Incomplete"
+                Dictionary[artist + ";" + album] = albumSongCount
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: python script_name.py directory_path")
         return
-
+    
+    output_file = 'album_list.xlsx'
     location = os.path.abspath(sys.argv[1])
+    yellowFill = PatternFill(patternType='solid', fgColor=colors.Color(rgb='FFFF00'))
+    
+
+    if(os.path.exists(output_file)):
+        os.remove(output_file)
 
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.title = "Albums"
-
-
-    currentRow = 2
-
-
+  
     # Headers
-    sheet['A1'] = "Album"
-    sheet['B1'] = "Artist"
+    sheet['A1'] = "Artist"
+    sheet['B1'] = "Album"
     sheet['C1'] = "Song"
     sheet['D1'] = "Status"
     sheet['E1'] = 'Notes'
+    
+    sheet.column_dimensions["A"].width = 50
+    sheet.column_dimensions["B"].width = 50
+    sheet.column_dimensions["D"].width = 25
 
-    artist_names = os.listdir(location)
+    artistNames = os.listdir(location)
 
-    for artist_name in artist_names:
-        artist_path = os.path.join(location, artist_name)
-        if os.path.isdir(artist_path):
-            process_artist_folder(artist_path, artist_name, currentRow,sheet)
-            currentRow += 1
+    for artist in artistNames:  # loop through all the files and folders
+      process_artist_albums(location, artist)
 
-    output_file = 'album_list.xlsx'
+      
+    for index, (artist, count) in enumerate(sorted(Dictionary.items(), key=lambda i: i[0].lower())): 
+        currentRow = index + 2
+        artistTrueName = artist.split(";")[0]
+        albumName = artist.split(";")[1]
+        sheet['A' + str(currentRow)] = artistTrueName
+        sheet['B' + str(currentRow)] = albumName
+        if int(count) > 3 : 
+            sheet['B' + str(currentRow)].fill = yellowFill
+            sheet['D' + str(currentRow)] = "Full"
+        else:
+            sheet['D' + str(currentRow)] = "Incomplete"
+        sheet['C' + str(currentRow)] = count
+        
+
     wb.save(output_file)
     print("Album list saved as", output_file)
-
 
 if __name__ == "__main__":
     main()

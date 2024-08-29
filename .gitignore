@@ -164,3 +164,4 @@ fileListings.txt
 *.exe
 *.old
 music-has-cover-art/output.txt
+.vscode/settings.json

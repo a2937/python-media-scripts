@@ -74,7 +74,11 @@ def main():
         print("Usage: python script_name.py directory_path")
         return
 
+    output_file = 'movie_list.xlsx'
     location = os.path.abspath(sys.argv[1])
+
+    if(os.path.exists(output_file)):
+        os.remove(output_file)
 
     filenames = os.listdir(location)
     dictionary = {}
@@ -87,7 +91,7 @@ def main():
     sheet['B1'] = "Type"
     sheet['C1'] = "Height"
     sheet['D1'] = 'Resolution'
-    
+    sheet.column_dimensions["A"].width = 50
 
 
     try:
@@ -114,8 +118,6 @@ def main():
                       column=4).value = size_info[2]
                 current_row = current_row + 1
 
-
-        output_file = 'movie_list.xlsx'
         wb.save(output_file)
         print("Show list saved as", output_file)
 
