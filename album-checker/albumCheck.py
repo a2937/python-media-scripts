@@ -5,8 +5,6 @@ import openpyxl
 from openpyxl.styles.fills import PatternFill
 from openpyxl.styles import colors
 
-Dictionary = {}
-
 
 def is_music_file(path):
     valid_extensions = [".mp3",".m4a",".flac"]
@@ -18,9 +16,11 @@ def is_music_file(path):
 
 
 def process_artist_albums(location, artist):
+    Dictionary = {}
     potArtistPath = os.path.join(os.path.abspath(location), artist)
+    print("Artist path: " + potArtistPath); 
     if os.path.isdir(potArtistPath):
-          # Grab every album by that artist
+        # Grab every album by that artist
         potentialAlbumNames = os.listdir(potArtistPath)
         for album in potentialAlbumNames:  # Look through every album
             potAlbumPath = os.path.join(os.path.abspath(
@@ -37,6 +37,7 @@ def process_artist_albums(location, artist):
                         albumSongCount += 1
 
                 Dictionary[artist + ";" + album] = albumSongCount
+    return Dictionary
 
 
 def main():
@@ -69,9 +70,10 @@ def main():
 
     artistNames = os.listdir(location)
 
+    Dictionary = {}
     for artist in artistNames:  # loop through all the files and folders
-      process_artist_albums(location, artist)
-
+      artist_album_data = process_artist_albums(location, artist)
+      Dictionary.update(artist_album_data)
       
     for index, (artist, count) in enumerate(sorted(Dictionary.items(), key=lambda i: i[0].lower())): 
         currentRow = index + 2
