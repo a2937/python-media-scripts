@@ -41,12 +41,13 @@ def process_artist_albums(location, artist):
 
 
 def main():
+    location = "" 
     if len(sys.argv) < 2:
-        print("Usage: python script_name.py directory_path")
-        return
-    
+        location = input("Enter folder>")
+    else :
+        location = os.path.abspath(sys.argv[1])
+
     output_file = 'album_list.xlsx'
-    location = os.path.abspath(sys.argv[1])
     yellowFill = PatternFill(patternType='solid', fgColor=colors.Color(rgb='FFFF00'))
     
 

@@ -70,12 +70,13 @@ def process_movie_folder(folder_path, folder_name):
 
 
 def main():
+    location = "" 
     if len(sys.argv) < 2:
-        print("Usage: python script_name.py directory_path")
-        return
+        location = input("Enter folder>")
+    else :
+        location = os.path.abspath(sys.argv[1])
 
     output_file = 'movie_list.xlsx'
-    location = os.path.abspath(sys.argv[1])
 
     if(os.path.exists(output_file)):
         os.remove(output_file)
