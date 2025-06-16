@@ -4,3 +4,5 @@ pocketsphinx
 SpeechRecognition
 openai-whisper 
 ffmpeg
+moviepy
+whisper_timestamped

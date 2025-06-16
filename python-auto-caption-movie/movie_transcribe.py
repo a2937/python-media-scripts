@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 # [1]
 import sys
 from os import path, remove
-from moviepy.editor import *
+from moviepy import *
 import whisper_timestamped as whisper
 
 def generate_subtitles(transcribed_dialogues, duration_per_dialogue=3):
@@ -23,7 +23,6 @@ def generate_subtitles(transcribed_dialogues, duration_per_dialogue=3):
 
 def write_srt(subtitle, output_srt_file):
     with open(output_srt_file, "a") as f:  # Use "a" mode for append
-        f.write(str(subtitle["index"]) + "\n")
         f.write(subtitle["start"] + " --> " + subtitle["end"] + "\n")
         f.write(subtitle["dialogue"] + "\n\n")
 
@@ -50,7 +49,7 @@ def main():
 
     extension_index = file_name.rfind(".")
     if extension_index != -1:
-        base_name = path.splitext(file_name)
+        base_name,ext = path.splitext(file_name)
         proper_name = base_name + "_audio.wav"
         output_srt_file = base_name + ".srt"
         
@@ -67,8 +66,7 @@ def main():
         for subtitle in subtitles:
             print(f"{subtitle['start']} --> {subtitle['end']}")
             print(subtitle['dialogue'])
-            print()
-            write_srt([subtitle], output_srt_file)  # Write subtitles to the SRT file line by line
+            write_srt(subtitle, output_srt_file)  # Write subtitles to the SRT file line by line
 
         remove(proper_name)
         print("Subtitles generated and saved as", output_srt_file)
