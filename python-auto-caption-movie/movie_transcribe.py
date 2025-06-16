@@ -16,7 +16,7 @@ def generate_subtitles(transcribed_dialogues, duration_per_dialogue=3):
         subtitles.append({
             "start": start_timestamp,
             "end": end_timestamp,
-            "dialogue": dialogue,
+            "dialogue": dialogue.strip(),
             'index': len(subtitles) + 1
         })
 
@@ -64,12 +64,12 @@ def main():
         transcribed_dialogues = [item['text'] for item in result['segments']]
 
         subtitles = generate_subtitles(transcribed_dialogues)
-        remove(output_srt_file)
+        if path.exists(output_srt_file):
+            remove(output_srt_file)
         for subtitle in subtitles:
             print(str(subtitle["index"]) + "\n")
             print(f"{subtitle['start']} --> {subtitle['end']}")
             print(subtitle['dialogue'])
- 
             write_srt(subtitle, output_srt_file)  # Write subtitles to the SRT file line by line
 
         remove(proper_name)
