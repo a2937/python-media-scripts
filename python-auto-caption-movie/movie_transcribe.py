@@ -28,6 +28,12 @@ def write_srt(subtitle, output_srt_file):
         f.write(subtitle["start"] + " --> " + subtitle["end"] + "\n")
         f.write(subtitle["dialogue"] + "\n\n")
 
+def write_vtt(subtitle, output_vtt_file):
+    with open(output_vtt_file, "a") as f:  # Use "a" mode for append
+        f.write(str(subtitle["index"]) + "\n")
+        f.write(subtitle["start"].replace(",",".") + " --> " + subtitle["end"].replace(",",".") + "\n")
+        f.write(subtitle["dialogue"] + "\n\n")
+
 def format_timestamp(seconds):
     hours = int(seconds / 3600)
     minutes = int((seconds % 3600) / 60)
@@ -54,6 +60,7 @@ def main():
         base_name,ext = path.splitext(file_name)
         proper_name = base_name + "_audio.wav"
         output_srt_file = base_name + ".srt"
+        output_vtt_file = base_name + ".vtt"
         
         # Write audio to the proper_name file
         clip.audio.write_audiofile(proper_name, codec='pcm_s16le')
@@ -66,11 +73,18 @@ def main():
         subtitles = generate_subtitles(transcribed_dialogues)
         if path.exists(output_srt_file):
             remove(output_srt_file)
+        if path.exists(output_vtt_file):
+            remove(output_vtt_file)
+        
+        with open(output_vtt_file, "w") as f:  
+          f.write("WEBVTT\n\n")
+        
         for subtitle in subtitles:
             print(str(subtitle["index"]) + "\n")
             print(f"{subtitle['start']} --> {subtitle['end']}")
             print(subtitle['dialogue'])
             write_srt(subtitle, output_srt_file)  # Write subtitles to the SRT file line by line
+            write_vtt(subtitle,output_vtt_file)
 
         remove(proper_name)
         print("Subtitles generated and saved as", output_srt_file)
